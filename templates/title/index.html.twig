@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Title index{% endblock %}
+
+{% block body %}
+    <h1>Title index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for title in titles %}
+            <tr>
+                <td>{{ title.id }}</td>
+                <td>{{ title.title }}</td>
+                <td>{{ title.description }}</td>
+                <td>
+                    <a href="{{ path('app_title_show', {'id': title.id}) }}">show</a>
+                    <a href="{{ path('app_title_edit', {'id': title.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_title_new') }}">Create new</a>
+{% endblock %}

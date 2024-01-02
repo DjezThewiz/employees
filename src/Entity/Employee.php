@@ -1,0 +1,396 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\EmployeeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
+enum Gender: string {
+    case Homme = 'M';
+    case Femme = 'F';
+    case Non_Binaire = 'X';
+}
+
+#[ORM\Table(name: 'employees')]
+#[ORM\Entity(repositoryClass: EmployeeRepository::class)]
+class Employee implements UserInterface, PasswordAuthenticatedUserInterface
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'NONE')]
+    #[ORM\Column(name: 'emp_no')]
+    private ?int $id = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $birthDate = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 14)]
+    #[ORM\Column(length: 14)]
+    private ?string $firstName = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 16)]
+    #[ORM\Column(length: 16)]
+    private ?string $lastName = null;
+
+    #[Assert\Choice(choices: ['M', 'F', 'X'])]
+    #[ORM\Column(length: 1, type: 'string', enumType: Gender::class)]
+    private ?Gender $gender = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photo = null;
+
+    #[UniqueEntity('email')]
+    #[Assert\Email]
+    #[ORM\Column(length: 255, unique: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $hireDate = null;
+
+    #[ORM\Column]
+    private ?bool $isVerified = null;
+
+    #[ORM\Column]
+    private array $roles = [];
+
+    /**
+     * @var string The hashed password
+     */
+    #[ORM\Column]
+    private ?string $password = null;
+
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Demand::class)]
+    private Collection $demands;
+
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Salary::class)]
+    private Collection $salaries;
+ 
+    #[ORM\JoinTable(name: 'emp_title')]
+    #[ORM\JoinColumn(name: 'emp_no', referencedColumnName: 'emp_no')]
+    #[ORM\InverseJoinColumn(name: 'title_no', referencedColumnName: 'title_no')]
+    #[ORM\ManyToMany(targetEntity: Title::class, inversedBy: 'employees')]
+    private Collection $title;
+
+    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'employee')]
+    private Collection $departments;
+
+    #[ORM\JoinTable(name: 'dept_manager')]
+    #[ORM\JoinColumn(name: 'emp_no', referencedColumnName: 'emp_no')]
+    #[ORM\InverseJoinColumn(name: 'dept_no', referencedColumnName: 'dept_no')]
+    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'manager')]
+    private Collection $managers;
+
+    public function __construct()
+    {
+        $this->demands = new ArrayCollection();
+        $this->salaries = new ArrayCollection();
+        $this->title = new ArrayCollection();
+        $this->departments = new ArrayCollection();
+        $this->managers = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getBirthDate(): ?\DateTimeInterface
+    {
+        return $this->birthDate;
+    }
+
+    public function setBirthDate(\DateTimeInterface $birthDate): static
+    {
+        $this->birthDate = $birthDate;
+
+        return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): static
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): static
+    {
+        $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getGender(): ?Gender
+    {
+        return $this->gender;
+    }
+
+    public function setGender(Gender $gender): static
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
+
+    public function setPhoto(?string $photo): static
+    {
+        $this->photo = $photo;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): static
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getHireDate(): ?\DateTimeInterface
+    {
+        return $this->hireDate;
+    }
+
+    public function setHireDate(\DateTimeInterface $hireDate): static
+    {
+        $this->hireDate = $hireDate;
+
+        return $this;
+    }
+
+    public function isIsVerified(): ?bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): static
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Demand>
+     */
+    public function getDemands(): Collection
+    {
+        return $this->demands;
+    }
+
+    public function addDemand(Demand $demand): static
+    {
+        if (!$this->demands->contains($demand)) {
+            $this->demands->add($demand);
+            $demand->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemand(Demand $demand): static
+    {
+        if ($this->demands->removeElement($demand)) {
+            // set the owning side to null (unless already changed)
+            if ($demand->getEmployee() === $this) {
+                $demand->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Salary>
+     */
+    public function getSalaries(): Collection
+    {
+        return $this->salaries;
+    }
+
+    public function addSalary(Salary $salary): static
+    {
+        if (!$this->salaries->contains($salary)) {
+            $this->salaries->add($salary);
+            $salary->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSalary(Salary $salary): static
+    {
+        if ($this->salaries->removeElement($salary)) {
+            // set the owning side to null (unless already changed)
+            if ($salary->getEmployee() === $this) {
+                $salary->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Title>
+     */
+    public function getTitle(): Collection
+    {
+        return $this->title;
+    }
+
+    public function addTitle(Title $title): static
+    {
+        if (!$this->title->contains($title)) {
+            $this->title->add($title);
+        }
+
+        return $this;
+    }
+
+    public function removeTitle(Title $title): static
+    {
+        $this->title->removeElement($title);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Department>
+     */
+    public function getDepartments(): Collection
+    {
+        return $this->departments;
+    }
+
+    public function addDepartment(Department $department): static
+    {
+        if (!$this->departments->contains($department)) {
+            $this->departments->add($department);
+            $department->addEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDepartment(Department $department): static
+    {
+        if ($this->departments->removeElement($department)) {
+            $department->removeEmployee($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Department>
+     */
+    public function getManagers(): Collection
+    {
+        return $this->managers;
+    }
+
+    public function addManager(Department $manager): static
+    {
+        if (!$this->managers->contains($manager)) {
+            $this->managers->add($manager);
+            $manager->addManager($this);
+        }
+
+        return $this;
+    }
+
+    public function removeManager(Department $manager): static
+    {
+        if ($this->managers->removeElement($manager)) {
+            $manager->removeManager($this);
+        }
+
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return "{$this->firstName} {$this->lastName}";
+    }
+}
