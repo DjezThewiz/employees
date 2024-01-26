@@ -8,6 +8,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use App\Entity\Gender;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Department;
 
 class EmployeeType extends AbstractType
 {
@@ -22,6 +24,17 @@ class EmployeeType extends AbstractType
             ->add('email')
             ->add('hireDate')
             ->add('isVerified')
+            ->add('department', EntityType::class, [
+                'class' => Department::class,
+                'choice_label' => function (Department $department) {
+                    return $department->getId() . ' - ' . $department->getDeptName();
+                },
+                'multiple' => true, //Un employé peut appartenir à plusieurs départements.
+                'expanded' => false,
+                'required' => true,
+                'by_reference' => false, //Indique à Symfony de manipuler la collection
+                'label' => 'Département',
+            ])
         ;
     }
 

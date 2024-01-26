@@ -22,9 +22,16 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_title_index') }}">back to list</a>
+    <a href="{{ path('app_title_index') }}">Retour / </a>
 
-    <a href="{{ path('app_title_edit', {'id': title.id}) }}">edit</a>
+    <a href="{{ path('app_title_edit', {'id': title.id}) }}">Modifier</a>
 
     {{ include('title/_delete_form.html.twig') }}
+
+    <h3>{{ title }}</h3>
+    {% for title_employee in title.employees %}
+        <div>{{ title_employee }}</div>
+    {% else %}
+        <p>Aucun "{{ title }}" trouvé.</p>
+    {% endfor %}
 {% endblock %}

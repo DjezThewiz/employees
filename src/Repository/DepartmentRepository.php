@@ -21,28 +21,33 @@ class DepartmentRepository extends ServiceEntityRepository
         parent::__construct($registry, Department::class);
     }
 
-//    /**
-//     * @return Department[] Returns an array of Department objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    // RECHERCHE PAR MOTS CLEF ET TRI PAR ORDRE CROISSANT ET DÉCROISSANT
+    public function findByKeywordAndSort($keyword, $sortBy, $sortOrder): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.deptName LIKE :keyword')
+            ->setParameter('keyword', '%' .$keyword. '%')
+            ->orderBy('d.' . $sortBy, $sortOrder)
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 
-//    public function findOneBySomeField($value): ?Department
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    // RECHERCHE DU DÉPARTEMENT ACTUEL D'UN EMPLOYÉ
+    public function findActualDepartmentForEmployee($employee): ?Department
+    {
+        return $this->createQueryBuilder('d')
+            ->innerJoin('d.deptEmps', 'de') // 'de' est l'allias de la propriété deptEmps (collection)
+            ->innerJoin('de.employee', 'e') // 'e est l'allias de la propriété employee
+            ->where('e.id = :id')
+            ->andWhere('de.toDate = :toDate')
+            ->setParameters([
+                'id' => $employee->getId(),
+                'toDate' => '9999-01-01',
+            ])
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
 }

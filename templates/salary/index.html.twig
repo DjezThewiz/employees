@@ -16,7 +16,9 @@
             </tr>
         </thead>
         <tbody>
-        {% for salary in salaries %}
+
+        {# SALAIRE DES EMPLOYÉS #}
+        {% for salary in pagination %}
             <tr>
                 <td>{{ salary.id }}</td>
                 <td>{{ salary.salary }}</td>
@@ -36,4 +38,9 @@
     </table>
 
     <a href="{{ path('app_salary_new') }}">Create new</a>
+
+    {# PAGINATION DES SALAIRES #}
+    <div  class="pagination">
+        {{ knp_pagination_render(pagination) }}
+    </div>
 {% endblock %}

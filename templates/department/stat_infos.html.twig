@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Department{% endblock %}
+
+{% block body %}
+    <h1>Infos</h1>
+
+    <h2 style="color:purple">Manager :</h2>
+
+    {% for manager in managers %}
+        <b style="color:red">{{ manager }}</b>
+        <p>Date d'entrée en fonction : {{ manager.toDate|date('d/m/Y') }}</p>
+    {% else %}
+        <span style="color:red">Aucun manager</span>
+    {% endfor %}
+
+    {# AFFICHER LE NOMBRE TOTAL DES EMPLOYÊS #}
+    <h2 style="color:purple">Nombre total d'employés : {{ nbreEmployees }} employés</h2>
+    
+    {% if employees is iterable %}
+        {% for employee in employees %}
+            <div>{{ employee }}</div>
+        {% else %}
+            <p>Aucun employé trouvé.</p>
+        {% endfor %}
+    {% endif %}
+
+    <h1>Statistiques</h1>
+
+    {# AFFICHER LE SALAIRE MOYEN DES EMPLOYÊS #}
+    {% if avgSalary %}
+        <p>Le salaire moyen de tous les employés est de <span style="background-color: #00FFFF">{{ avgSalary }}</span></p>
+    {% endif %}
+
+    <a href="{{ path('app_department_index') }}">Retour</a>
+{% endblock %}

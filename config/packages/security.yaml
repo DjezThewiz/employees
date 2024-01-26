@@ -7,7 +7,7 @@ security:
         # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
-                class: App\Entity\User
+                class: App\Entity\Employee
                 property: email
     firewalls:
         dev:
@@ -16,6 +16,17 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            custom_authenticator: App\Security\EmployeeAuthenticator
+            logout:
+                path: app_logout
+                # where to redirect after logout
+                target: app_login
+
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
+                always_remember_me: true
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -27,7 +38,10 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # - { path: ^/demand, roles: ROLE_ADMIN }
+        # - { path: ^/employee, roles: ROLE_USER }
+        # - { path: ^/department, roles: ROLE_USER }
+         - { path: ^/mission, roles: ROLE_USER }
 
 when@test:
     security:

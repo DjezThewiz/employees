@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Futurs managers{% endblock %}
+
+{% block body %} 
+    <h1>Liste des futurs managers</h1>
+
+    {% for employee in department.getEmployees() %}
+        <div><b>{{ employee }}</b></div>
+
+        {# FORMULAIRE POUR NOMMER UN MANAGER #}
+        <form action="{{ path('name_manager', {'id': department.id}) }}" method="post">
+            <input type="hidden" name="token" value="{{ csrf_token('name_manager') }}">
+            <input type="hidden" name="employee_id" value="{{ employee.id }}">
+
+            <button type="submit" name="action" value="finish" style="background-color: red; color: white;">Nommer manager</button>
+        </form>
+    {% else %}
+        <p>Aucun employé trouvé.</p>
+    {% endfor %}
+
+    <a href="{{ path('app_department_index') }}">Retour</a>
+{% endblock %}

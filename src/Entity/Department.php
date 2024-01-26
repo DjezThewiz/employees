@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Department
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'NONE')]
+    #[ORM\GeneratedValue]
     #[ORM\Column(name: 'dept_no')]
     private ?string $id = null;
 
@@ -28,26 +28,28 @@ class Department
     #[ORM\Column(length: 255)]
     private ?string $address = null;
 
-    #[ORM\JoinTable(name: 'dept_emp')]
-    #[ORM\JoinColumn(name: 'dept_no', referencedColumnName: 'dept_no')]
-    #[ORM\InverseJoinColumn(name: 'emp_no', referencedColumnName: 'emp_no')]
+    #[ORM\OneToMany(mappedBy: 'department', targetEntity: DeptEmp::class)]
+    private Collection $deptEmps;
+
+    #[ORM\ManyToMany(targetEntity: Employee::class, mappedBy: 'department')]
+    private Collection $employees;
+
+    #[ORM\JoinTable(name: 'dept_manager')]
+    #[ORM\JoinColumn(name: 'dept_no', referencedColumnName: 'dept_no', nullable: false)]
+    #[ORM\InverseJoinColumn(name: 'emp_no', referencedColumnName: 'emp_no', nullable: false)]
     #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'departments')]
-    private Collection $employee;
+    private Collection $managers;
 
-    #[ORM\JoinTable(name: 'dept_title')]
-    #[ORM\JoinColumn(name: 'dept_no', referencedColumnName: 'dept_no')]
-    #[ORM\InverseJoinColumn(name: 'title_no', referencedColumnName: 'title_no')]
-    #[ORM\ManyToMany(targetEntity: Title::class, inversedBy: 'departments')]
-    private Collection $title;
-
-    #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'managers')]
-    private Collection $manager;
+    // cascade: ["persist"] : Quand on persiste l'objet parent, symfony persistera automatiquement les objets enfants
+    #[ORM\OneToMany(mappedBy: 'department', targetEntity: DeptManager::class, orphanRemoval: true, cascade: ["persist"])]
+    private Collection $deptManagers;
 
     public function __construct()
     {
-        $this->employee = new ArrayCollection();
-        $this->title = new ArrayCollection();
-        $this->manager = new ArrayCollection();
+        $this->deptEmps = new ArrayCollection();
+        $this->employees = new ArrayCollection();
+        $this->managers = new ArrayCollection();
+        $this->deptManagers = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -103,18 +105,55 @@ class Department
         return $this;
     }
 
+    // AFFICHAGE DU NOM DU DÉPARTEMENT
+    public function __toString(): string
+    {
+        return $this->deptName;
+    }
+
+    /**
+     * @return Collection<int, DeptEmp>
+     */
+    public function getDeptEmps(): Collection
+    {
+        return $this->deptEmps;
+    }
+
+    public function addDeptEmp(DeptEmp $deptEmp): static
+    {
+        if (!$this->deptEmps->contains($deptEmp)) {
+            $this->deptEmps->add($deptEmp);
+            $deptEmp->setDepartment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeptEmp(DeptEmp $deptEmp): static
+    {
+        if ($this->deptEmps->removeElement($deptEmp)) {
+            // set the owning side to null (unless already changed)
+            if ($deptEmp->getDepartment() === $this) {
+                $deptEmp->setDepartment(null);
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Employee>
      */
-    public function getEmployee(): Collection
+    public function getEmployees(): Collection
     {
-        return $this->employee;
+        return $this->employees;
     }
 
     public function addEmployee(Employee $employee): static
     {
-        if (!$this->employee->contains($employee)) {
-            $this->employee->add($employee);
+        if (!$this->employees->contains($employee)) {
+            $this->employees->add($employee);
+            $employee->addDepartment($this);
         }
 
         return $this;
@@ -122,31 +161,12 @@ class Department
 
     public function removeEmployee(Employee $employee): static
     {
-        $this->employee->removeElement($employee);
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Title>
-     */
-    public function getTitle(): Collection
-    {
-        return $this->title;
-    }
-
-    public function addTitle(Title $title): static
-    {
-        if (!$this->title->contains($title)) {
-            $this->title->add($title);
+        if ($this->employees->removeElement($employee)) {
+            // set the owning side to null (unless already changed)
+            if ($employee->getDepartment()->contains($this)) {
+                $employee->removeDepartment($this);
+            }
         }
-
-        return $this;
-    }
-
-    public function removeTitle(Title $title): static
-    {
-        $this->title->removeElement($title);
 
         return $this;
     }
@@ -154,15 +174,20 @@ class Department
     /**
      * @return Collection<int, Employee>
      */
-    public function getManager(): Collection
+    public function getManagers(): Collection
     {
-        return $this->manager;
+        return $this->managers;
     }
 
-    public function addManager(Employee $manager): static
+    // Méthode modifier de façon à pouvoir accepter également des tableaux
+    public function addManager($manager): static
     {
-        if (!$this->manager->contains($manager)) {
-            $this->manager->add($manager);
+        if (is_array($manager)) {
+            foreach ($manager as $singleManager) {
+                $this->addManager($singleManager);
+            }
+        } elseif (!$this->managers->contains($manager)) {
+            $this->managers->add($manager);
         }
 
         return $this;
@@ -170,7 +195,37 @@ class Department
 
     public function removeManager(Employee $manager): static
     {
-        $this->manager->removeElement($manager);
+        $this->managers->removeElement($manager);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DeptManager>
+     */
+    public function getDeptManagers(): Collection
+    {
+        return $this->deptManagers;
+    }
+
+    public function addDeptManager(DeptManager $deptManager): static
+    {
+        if (!$this->deptManagers->contains($deptManager)) {
+            $this->deptManagers->add($deptManager);
+            $deptManager->setDepartment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeptManager(DeptManager $deptManager): static
+    {
+        if ($this->deptManagers->removeElement($deptManager)) {
+            // set the owning side to null (unless already changed)
+            if ($deptManager->getDepartment() === $this) {
+                $deptManager->setDepartment(null);
+            }
+        }
 
         return $this;
     }

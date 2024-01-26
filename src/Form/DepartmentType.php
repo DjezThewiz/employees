@@ -18,11 +18,11 @@ class DepartmentType extends AbstractType
             ->add('description')
             ->add('roiUrl')
             ->add('address')
-            ->add('employee', EntityType::class, [
-                'class' => Employee::class,
-'choice_label' => 'id',
-'multiple' => true,
-            ])
+            // ->add('employees', EntityType::class, [
+            //     'class' => Employee::class,
+            //     'choice_label' => 'id',
+            //     'multiple' => true,
+            // ])
         ;
     }
 

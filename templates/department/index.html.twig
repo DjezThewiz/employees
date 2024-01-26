@@ -3,7 +3,10 @@
 {% block title %}Department index{% endblock %}
 
 {% block body %}
-    <h1>Department index</h1>
+    <h1>Liste des départements</h1>
+
+    {# AFFICHAGE DU FORMULAIRE DE RECHERCHE #}
+    {{ form(form) }}
 
     <table class="table">
         <thead>
@@ -17,7 +20,7 @@
             </tr>
         </thead>
         <tbody>
-        {% for department in departments %}
+        {% for department in pagination %}
             <tr>
                 <td>{{ department.id }}</td>
                 <td>{{ department.deptName }}</td>
@@ -27,6 +30,10 @@
                 <td>
                     <a href="{{ path('app_department_show', {'id': department.id}) }}">show</a>
                     <a href="{{ path('app_department_edit', {'id': department.id}) }}">edit</a>
+                    
+                    {# NOMMER UN MANAGER/ STATISTIQUES ET INFOS DU DÉPARTEMENT #}
+                    <a href="{{ path('name_manager', {'id': department.id}) }}"><span style="color:green">NOMMER UN MANAGER</a></span>
+                    <a href="{{ path('app_department_stat_infos', {'id': department.id}) }}"><span style="color:orange">STAT & INFOS</span></a>
                 </td>
             </tr>
         {% else %}
@@ -38,4 +45,9 @@
     </table>
 
     <a href="{{ path('app_department_new') }}">Create new</a>
+
+    {# PAGINATION DES DÉPARTEMENTS #}
+    <div  class="pagination">
+        {{ knp_pagination_render(pagination) }}
+    </div>
 {% endblock %}

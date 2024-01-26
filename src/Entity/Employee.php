@@ -20,6 +20,7 @@ enum Gender: string {
 
 #[ORM\Table(name: 'employees')]
 #[ORM\Entity(repositoryClass: EmployeeRepository::class)]
+#[UniqueEntity(fields: 'email', message: 'Cette adresse e-mail est déjà utilisée.')]
 class Employee implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -47,7 +48,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
-    #[UniqueEntity('email')]
     #[Assert\Email]
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
@@ -67,34 +67,49 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $contract = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $diploma = null;
+
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Demand::class)]
     private Collection $demands;
 
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Salary::class)]
     private Collection $salaries;
- 
-    #[ORM\JoinTable(name: 'emp_title')]
-    #[ORM\JoinColumn(name: 'emp_no', referencedColumnName: 'emp_no')]
-    #[ORM\InverseJoinColumn(name: 'title_no', referencedColumnName: 'title_no')]
-    #[ORM\ManyToMany(targetEntity: Title::class, inversedBy: 'employees')]
-    private Collection $title;
 
-    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'employee')]
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: DeptEmp::class)]
+    private Collection $deptEmps;
+
+    #[ORM\JoinTable(name: 'dept_emp')]
+    #[ORM\JoinColumn(name: 'emp_no', referencedColumnName: 'emp_no', nullable: false)]
+    #[ORM\InverseJoinColumn(name: 'dept_no', referencedColumnName: 'dept_no', nullable: false)]
+    #[ORM\ManyToMany(targetEntity: Department::class, inversedBy: 'employees')]
+    private Collection $department;
+
+    #[ORM\ManyToMany(targetEntity: Mission::class, mappedBy: 'employees')]
+    private Collection $missions;
+
+    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'managers')]
     private Collection $departments;
 
-    #[ORM\JoinTable(name: 'dept_manager')]
-    #[ORM\JoinColumn(name: 'emp_no', referencedColumnName: 'emp_no')]
-    #[ORM\InverseJoinColumn(name: 'dept_no', referencedColumnName: 'dept_no')]
-    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'manager')]
-    private Collection $managers;
+    #[ORM\OneToMany(mappedBy: 'manager', targetEntity: DeptManager::class, orphanRemoval: true)]
+    private Collection $deptManagers;
+
+    #[ORM\ManyToMany(targetEntity: Title::class, mappedBy: 'employees')]
+    private Collection $titles;
 
     public function __construct()
     {
         $this->demands = new ArrayCollection();
         $this->salaries = new ArrayCollection();
-        $this->title = new ArrayCollection();
+        $this->deptEmps = new ArrayCollection();
+        $this->department = new ArrayCollection();
+        $this->missions = new ArrayCollection();
         $this->departments = new ArrayCollection();
-        $this->managers = new ArrayCollection();
+        $this->deptManagers = new ArrayCollection();
+        $this->titles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -229,36 +244,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Salary>
-     */
-    public function getSalaries(): Collection
-    {
-        return $this->salaries;
-    }
-
-    public function addSalary(Salary $salary): static
-    {
-        if (!$this->salaries->contains($salary)) {
-            $this->salaries->add($salary);
-            $salary->setEmployee($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSalary(Salary $salary): static
-    {
-        if ($this->salaries->removeElement($salary)) {
-            // set the owning side to null (unless already changed)
-            if ($salary->getEmployee() === $this) {
-                $salary->setEmployee(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * A visual identifier that represents this user.
      *
      * @see UserInterface
@@ -311,26 +296,143 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    /**
-     * @return Collection<int, Title>
-     */
-    public function getTitle(): Collection
+    public function __toString(): string
     {
-        return $this->title;
+        return "{$this->firstName} {$this->lastName}";
     }
 
-    public function addTitle(Title $title): static
+    /**
+     * @return Collection<int, Salary>
+     */
+    public function getSalaries(): Collection
     {
-        if (!$this->title->contains($title)) {
-            $this->title->add($title);
+        return $this->salaries;
+    }
+
+    public function addSalary(Salary $salary): static
+    {
+        if (!$this->salaries->contains($salary)) {
+            $this->salaries->add($salary);
+            $salary->setEmployee($this);
         }
 
         return $this;
     }
 
-    public function removeTitle(Title $title): static
+    public function removeSalary(Salary $salary): static
     {
-        $this->title->removeElement($title);
+        if ($this->salaries->removeElement($salary)) {
+            // set the owning side to null (unless already changed)
+            if ($salary->getEmployee() === $this) {
+                $salary->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DeptEmp>
+     */
+    public function getDeptEmps(): Collection
+    {
+        return $this->deptEmps;
+    }
+
+    public function addDeptEmp(DeptEmp $deptEmp): static
+    {
+        if (!$this->deptEmps->contains($deptEmp)) {
+            $this->deptEmps->add($deptEmp);
+            $deptEmp->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeptEmp(DeptEmp $deptEmp): static
+    {
+        if ($this->deptEmps->removeElement($deptEmp)) {
+            // set the owning side to null (unless already changed)
+            if ($deptEmp->getEmployee() === $this) {
+                $deptEmp->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Department>
+     */
+    public function getDepartment(): Collection
+    {
+        return $this->department;
+    }
+
+    public function addDepartment(Department $department): static
+    {
+        if (!$this->department->contains($department)) {
+            $this->department->add($department);
+        }
+
+        return $this;
+    }
+
+    public function removeDepartment(Department $department): static
+    {
+        $this->department->removeElement($department);
+
+        return $this;
+    }
+
+    // LES METHODES CONCERNANT LES DOCUMENTS
+    public function getContract(): ?string
+    {
+        return $this->contract;
+    }
+
+    public function setContract(?string $contract): self
+    {
+        $this->contract = $contract;
+
+        return $this;
+    }
+
+    public function getDiploma(): ?string
+    {
+        return $this->diploma;
+    }
+
+    public function setDiploma(?string $diploma): self
+    {
+        $this->diploma = $diploma;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Mission>
+     */
+    public function getMissions(): Collection
+    {
+        return $this->missions;
+    }
+
+    public function addMission(Mission $mission): static
+    {
+        if (!$this->missions->contains($mission)) {
+            $this->missions->add($mission);
+            $mission->addEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMission(Mission $mission): static
+    {
+        if ($this->missions->removeElement($mission)) {
+            $mission->removeEmployee($this);
+        }
 
         return $this;
     }
@@ -343,54 +445,60 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->departments;
     }
 
-    public function addDepartment(Department $department): static
+    /**
+     * @return Collection<int, DeptManager>
+     */
+    public function getDeptManagers(): Collection
     {
-        if (!$this->departments->contains($department)) {
-            $this->departments->add($department);
-            $department->addEmployee($this);
+        return $this->deptManagers;
+    }
+
+    public function addDeptManager(DeptManager $deptManager): static
+    {
+        if (!$this->deptManagers->contains($deptManager)) {
+            $this->deptManagers->add($deptManager);
+            $deptManager->setManager($this);
         }
 
         return $this;
     }
 
-    public function removeDepartment(Department $department): static
+    public function removeDeptManager(DeptManager $deptManager): static
     {
-        if ($this->departments->removeElement($department)) {
-            $department->removeEmployee($this);
+        if ($this->deptManagers->removeElement($deptManager)) {
+            // set the owning side to null (unless already changed)
+            if ($deptManager->getManager() === $this) {
+                $deptManager->setManager(null);
+            }
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, Department>
+     * @return Collection<int, Title>
      */
-    public function getManagers(): Collection
+    public function getTitles(): Collection
     {
-        return $this->managers;
+        return $this->titles;
     }
 
-    public function addManager(Department $manager): static
+    public function addTitle(Title $title): static
     {
-        if (!$this->managers->contains($manager)) {
-            $this->managers->add($manager);
-            $manager->addManager($this);
+        if (!$this->titles->contains($title)) {
+            $this->titles->add($title);
+            $title->addEmployee($this);
         }
 
         return $this;
     }
 
-    public function removeManager(Department $manager): static
+    public function removeTitle(Title $title): static
     {
-        if ($this->managers->removeElement($manager)) {
-            $manager->removeManager($this);
+        if ($this->titles->removeElement($title)) {
+            $title->removeEmployee($this);
         }
 
         return $this;
-    }
-
-    public function __toString(): string
-    {
-        return "{$this->firstName} {$this->lastName}";
     }
 }

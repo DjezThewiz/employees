@@ -1,9 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Employee{% endblock %}
+{% block title %}Mon profil{% endblock %}
 
 {% block body %}
-    <h1>Employee</h1>
+    <h1>Mes données personnelles</h1>
+
+    {# Y'A QUE L'UTILISATEUR CONNECTÉ QUI VERRA CE LIEN #}
+    {% if app.user %}
+        <a href="{{ path('app_mission_mes_missions_show', {'id': employee.id}) }}"><b>Mes missions</b></a>
+    {% endif %}
 
     <table class="table">
         <tbody>
@@ -13,7 +18,7 @@
             </tr>
             <tr>
                 <th>BirthDate</th>
-                <td>{{ employee.birthDate ? employee.birthDate|date('Y-m-d') : '' }}</td>
+                <td>{{ employee.birthDate ? employee.birthDate|date('d/m/Y') : '' }}</td>
             </tr>
             <tr>
                 <th>FirstName</th>
@@ -37,13 +42,18 @@
             </tr>
             <tr>
                 <th>HireDate</th>
-                <td>{{ employee.hireDate ? employee.hireDate|date('Y-m-d') : '' }}</td>
+                <td>{{ employee.hireDate ? employee.hireDate|date('d/m/Y') : '' }}</td>
             </tr>
             <tr>
                 <th>IsVerified</th>
                 <td>{{ employee.isVerified ? 'Yes' : 'No' }}</td>
             </tr>
+            <tr>
+                <th style="color:purple">Mes documents</th>
+                <td><a href="{{ path('employee_documents', {'id': employee.id}) }}">VOIR</a></td>
+            </tr>
 
+            {# LES DEMANDES D'UN EMPLOYÉS #}
             <tr>
                 <th style="color:orange">DEMANDES</th>
                 <td>
@@ -52,6 +62,8 @@
                     {% endfor %}
                 </td>
             </tr>
+
+            {# LES SALAIRES D'UN EMPLOYÉS #}
             <tr>
                 <th style="color:blue">SALAIRES</th>
                 {% for salary in employee.salaries %}
@@ -60,12 +72,32 @@
                     </td>
                 {% endfor %}
             </tr>
+
+            {# HISTORIQUE DES DÉPARTEMENTS D'UN EMPLOYÉS #}
+            <tr>
+                <th style="color:green">Historique des DÉPARTEMENTS</th>
+                <td>
+                    {% for department in employee.department %}
+                        <div>{{ department }}</div>
+                    {% else %}
+                        <div>Aucun département trouvé.</div>
+                    {% endfor %}
+                </td>
+            </tr>
+
+            {# FILTRE DANS LE REPOSITORY DU DÉPARTEMENT #}
+            <tr>
+                <th style="color:red">DÉPARTEMENT Actuel</th>
+                <td>
+                    <div>{{ employee.actualDepartment }}</div>
+                </td>
+            </tr>
         </tbody>
     </table>
 
-    <a href="{{ path('app_employee_index') }}">back to list</a>
+    <a href="{{ path('app_employee_index') }}">Retour / t</a>
 
-    <a href="{{ path('app_employee_edit', {'id': employee.id}) }}">edit</a>
+    <a href="{{ path('app_employee_edit', {'id': employee.id}) }}">Modifier</a>
 
     {{ include('employee/_delete_form.html.twig') }}
 {% endblock %}

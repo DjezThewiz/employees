@@ -21,28 +21,79 @@ class EmployeeRepository extends ServiceEntityRepository
         parent::__construct($registry, Employee::class);
     }
 
-//    /**
-//     * @return Employee[] Returns an array of Employee objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('e.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    // PAGINATION & RECHERCHE PAR MOT CLÉ
+    public function findByKeywordAndSort($keyword, $sortBy, $sortOrder)
+    {
+            return $this->createQueryBuilder('e')
+            ->where('e.firstName LIKE :keyword OR e.lastName LIKE :keyword')
+            ->setParameter('keyword', '%'.$keyword.'%')
+            ->setMaxResults(3)
+            ->orderBy('e.' . $sortBy, $sortOrder)
+            ->getQuery()
+            ->getResult();
+    }
 
-//    public function findOneBySomeField($value): ?Employee
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    // RECHERCHE DES EMPLOYÉS ACTUELS D'UN DÉPARTEMENT
+    public function findActualEmployeesByDepartment($department): array
+    {
+        $results = $this->createQueryBuilder('emp')
+            ->select('e')    // Sélectionne l'employé
+            ->from(Employee::class, 'e')
+            ->innerJoin('e.deptEmps', 'de')
+            ->innerJoin('de.department', 'd')
+            ->where('d.id = :id')
+            ->andWhere('de.toDate = :toDate')    // 'toDate' se trouve dans la table dept_emp (de)
+            ->setParameters([
+                'id' => $department->getId(),
+                'toDate' => '9999-01-01',
+            ])
+            ->getQuery()
+            ->getResult();
+    
+        return $results;
+    }  
+    
+    // RECHERCHE DES EMPLOYÉS D'UN DÉPARTEMENT
+    public function findEmployeesByDepartment($department): array
+    {
+        $queryBuilder = $this->createQueryBuilder('e')
+        ->innerJoin('e.department', 'd')
+        ->where('d.id = :id')
+        ->setParameter('id', $department->getId())
+        ->getQuery();
+
+        $result = $queryBuilder->getResult();   // dd($result);
+
+        return $result;
+    }
+
+    // RECHERCHE DE SALAIRE MOYEN EMPLOYÉS D'UN DÉPARTEMENT
+    public function findAverageSalaryForEmployeesByDepartment($department): float
+    {
+        $queryBuilder = $this->createQueryBuilder('e')
+            ->select('AVG(s.salary) as averageSalary')
+            ->leftJoin('e.salaries', 's')
+            ->leftJoin('e.deptManagers', 'dm') // Tous les employés seront inclus dans le résultat, même s'ils n'ont pas de manager.
+            ->innerJoin('e.department', 'd')
+            ->where('d.id = :id')
+            ->andWhere('dm.id IS NULL') // Exclure les employés qui sont aussi managers
+            ->setParameter('id', $department->getId())
+            ->getQuery();
+
+        $result = $queryBuilder->getSingleScalarResult();
+
+        return (float) $result;
+    }
+
+    // RECHERCHE DES EMPLOYÉS QUI ONT FAIT DES DEMANDES
+    public function findEmployeesByDemands(): array
+    {
+        return $this->createQueryBuilder('e')
+        ->innerJoin('e.demands', 'd')
+        ->addSelect('d') // Pour sélectionner les demandes avec les employés
+        ->where('d.status IN (:status)')
+        ->setParameter('status', [null, 0, 1])
+        ->getQuery()
+        ->getResult();
+    }
 }

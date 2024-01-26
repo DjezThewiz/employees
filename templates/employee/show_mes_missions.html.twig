@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes missions{% endblock %}
+
+{% block body %}
+    <h1>Mes missions</h1>
+
+    {# NOTIFICATION SUCCESS #}
+    {% for message in app.flashes('success') %}
+        <div class="flash-success">
+            <span style="background-color:#25FDE9">{{ message }}</span>
+        </div>
+    {% endfor %}
+
+    {# MISSIONS D'UN EMPLOYÉ #}
+    {% if missions is iterable %}
+        <ol>
+            {% for mission in missions %}
+                <li>
+                    {{ mission.description }} - <b>{{ mission.status }}</b>
+                    {% if mission.status != 'done' %}
+                        {% include '_mission_form.html.twig' with {'form_action': path('update_mission', {'id': mission.id})} %} 
+                    {% endif %}
+                </li>
+            {% else %}
+                <p style="background-color:pink">Aucune mission trouvée.</p>
+            {% endfor %}
+        </ol>
+    {% endif %}
+
+    {# NOTIFICATION ERROR #}
+    {% for message in app.flashes('error') %}
+        <div class="flash-error">
+            <span style="background-color:pink">{{ message }}</span>
+        </div>
+    {% endfor %}
+
+    <a href="{{ path('app_employee_index') }}">Retour</a>
+{% endblock %}

@@ -11,7 +11,6 @@
                 <th>Id</th>
                 <th>Type</th>
                 <th>About</th>
-                <th>Status</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -21,7 +20,7 @@
                 <td>{{ demand.id }}</td>
                 <td>{{ demand.type }}</td>
                 <td>{{ demand.about }}</td>
-                <td>{{ demand.status }}</td>
+                <td>{{ demand.status == null ? 'En attente' : (demand.status == 1 ? 'Accepté' : 'Refusé') }}</td>
                 <td>
                     <a href="{{ path('app_demand_show', {'id': demand.id}) }}">show</a>
                     <a href="{{ path('app_demand_edit', {'id': demand.id}) }}">edit</a>

@@ -1,0 +1,28 @@
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">WebSiteName</a>
+        </div>
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="{{ path('home_page') }}">Accueil</a></li>
+            {% if app.user %}
+                <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Détails <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ path('app_salary_index') }}">Salaires</a></li>
+                        <li><a href="{{ path('app_mission_index') }}">Missions</a></li>
+                        <li><a href="{{ path('app_title_index') }}">Titres</a></li>
+                    </ul>
+                </li>
+                <li><a href="{{ path('app_employee_index') }}">Employés</a></li>
+                <li><a href="{{ path('app_department_index') }}">Départements</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                <li><a href="{{ path('app_logout') }}"><span class="glyphicon glyphicon-user"></span> Se déconnecter</a></li>
+            {% else %}
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                <li><a href="{{ path('app_login') }}"><span class="glyphicon glyphicon-log-in"></span> Se connecter</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>

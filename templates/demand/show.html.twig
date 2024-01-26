@@ -30,9 +30,35 @@
         </tbody>
     </table>
 
-    <a href="{{ path('app_demand_index') }}">back to list</a>
+    {# NOTIFICATION SUCCESS #}
+    {% for message in app.flashes('success') %}
+        <div class="flash-success">
+            <span style="background-color:#25FDE9">{{ message }}</span>
+        </div>
+    {% endfor %}
 
-    <a href="{{ path('app_demand_edit', {'id': demand.id}) }}">edit</a>
+    {# VALIDATION DU STATUS PAR ADMINISTRATEUR #}
+    {% if is_granted('ROLE_ADMIN') %}
+        {% if demand.status==null %}
+            <form action="{{ path('update_demand', {'id':demand.id}) }}" method="post">
+                <input type="hidden" name="token" value="{{ csrf_token('update_demand') }}">
+
+                <button type="submit" name="action" value="accept" style="background-color: green; color: white;">Accepter</button>
+                <button type="submit" name="action" value="refuse" style="background-color: red; color: white;">Refuser</button>
+            </form>
+        {% endif %}
+    {% endif %}
+
+    {# NOTIFICATION ERROR #}
+    {% for message in app.flashes('error') %}
+        <div class="flash-error">
+            <span style="background-color:pink">{{ message }}</span>
+        </div>
+    {% endfor %}
+    
+    <a href="{{ path('app_demand_index') }}">Retour / </a>
+
+    <a href="{{ path('app_demand_edit', {'id': demand.id}) }}">Modifier</a>
 
     {{ include('demand/_delete_form.html.twig') }}
 {% endblock %}

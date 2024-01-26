@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Title
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValu(strategy: 'AUTO')]
     #[ORM\Column(name: 'title_no')]
     private ?int $id = null;
 
@@ -22,16 +22,15 @@ class Title
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
-    #[ORM\ManyToMany(targetEntity: Employee::class, mappedBy: 'title')]
+    #[ORM\JoinTable(name: 'emp_title')]
+    #[ORM\JoinColumn(name: 'title_no', referencedColumnName: 'title_no', nullable: false)]
+    #[ORM\InverseJoinColumn(name: 'emp_no', referencedColumnName: 'emp_no', nullable: false)]
+    #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'titles')]
     private Collection $employees;
-
-    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'title')]
-    private Collection $departments;
 
     public function __construct()
     {
         $this->employees = new ArrayCollection();
-        $this->departments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,7 +74,6 @@ class Title
     {
         if (!$this->employees->contains($employee)) {
             $this->employees->add($employee);
-            $employee->addTitle($this);
         }
 
         return $this;
@@ -83,37 +81,13 @@ class Title
 
     public function removeEmployee(Employee $employee): static
     {
-        if ($this->employees->removeElement($employee)) {
-            $employee->removeTitle($this);
-        }
+        $this->employees->removeElement($employee);
 
         return $this;
     }
 
-    /**
-     * @return Collection<int, Department>
-     */
-    public function getDepartments(): Collection
+    public function __toString(): string
     {
-        return $this->departments;
-    }
-
-    public function addDepartment(Department $department): static
-    {
-        if (!$this->departments->contains($department)) {
-            $this->departments->add($department);
-            $department->addTitle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDepartment(Department $department): static
-    {
-        if ($this->departments->removeElement($department)) {
-            $department->removeTitle($this);
-        }
-
-        return $this;
+        return $this->title;
     }
 }
