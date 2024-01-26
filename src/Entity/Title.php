@@ -28,9 +28,13 @@ class Title
     #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'titles')]
     private Collection $employees;
 
+    #[ORM\ManyToMany(targetEntity: Department::class, mappedBy: 'titles')]
+    private Collection $departments;
+
     public function __construct()
     {
         $this->employees = new ArrayCollection();
+        $this->departments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -89,5 +93,32 @@ class Title
     public function __toString(): string
     {
         return $this->title;
+    }
+
+    /**
+     * @return Collection<int, Department>
+     */
+    public function getDepartments(): Collection
+    {
+        return $this->departments;
+    }
+
+    public function addDepartment(Department $department): static
+    {
+        if (!$this->departments->contains($department)) {
+            $this->departments->add($department);
+            $department->addTitle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDepartment(Department $department): static
+    {
+        if ($this->departments->removeElement($department)) {
+            $department->removeTitle($this);
+        }
+
+        return $this;
     }
 }

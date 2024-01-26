@@ -3,7 +3,7 @@
 {% block title %}Liste des Employés{% endblock %}
 
 {% block body %}
-    <h1>Liste des Employés</h1>
+    <h1>Les employés</h1>
 
     {# Affichez le formulaire de recherche #}
     {{ form(form) }}
@@ -30,7 +30,7 @@
                     <td>{{ employee.birthDate ? employee.birthDate|date('d/m/Y') : '' }}</td>
                     <td>{{ employee.firstName }}</td>
                     <td>{{ employee.lastName }}</td>
-                    <td>{{ employee.gender.value }}</td>
+                    <td>{{ employee.gender.value == 'X' ? 'Non_Binaire' : (employee.gender.value == 'M' ? 'Homme' : 'Femme')  }}</td>
                     <td>{{ employee.photo }}</td>
                     <td>{{ employee.email }}</td>
                     <td>{{ employee.hireDate ? employee.hireDate|date('d/m/Y') : '' }}</td>

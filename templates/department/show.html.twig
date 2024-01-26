@@ -3,15 +3,22 @@
 {% block title %}Department{% endblock %}
 
 {% block body %}
-    <h1>Department</h1>
+    <h1>Department : {{ department|upper }}</h1>
+
+    <h2>Titre :</h2>
+
+    {# AFFICHAGE DU TITRE DU DÉPARTEMENT #}
+    {% for title in titles %}  
+        <div>{{ title }}</div>
+    {% endfor %}
 
     {# AFFICHAGE DU MANAGER #}
     <h2>Manager :</h2>
-        {% for manager in managers %}
-            <b style="color:red">{{ manager }}</b>
-        {% else %}
-            <span style="color:red">Aucun manager</span>
-        {% endfor %}
+    {% for manager in managers %}
+        <b style="color:red">{{ manager }}</b>
+    {% else %}
+        <span style="color:red">Aucun manager</span>
+    {% endfor %}
 
 
     <table class="table">

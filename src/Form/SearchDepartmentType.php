@@ -18,7 +18,7 @@ class SearchDepartmentType extends AbstractType
                 'label' => 'Recherche : ',
                 'required' => false,
                 'attr' => [
-                    'placeholder' => 'Nom ou prénom...',
+                    'placeholder' => 'Nom du département...',
                 ],
             ])
             ->add('sortBy', ChoiceType::class, [

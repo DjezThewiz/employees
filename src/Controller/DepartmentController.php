@@ -9,6 +9,7 @@ use App\Form\SearchDepartmentType;
 use App\Repository\DepartmentRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\DeptManagerRepository;
+use App\Repository\TitleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -71,16 +72,18 @@ class DepartmentController extends AbstractController
         ]);
     }
 
+    // SÉLECTION DES EMPLOYÉS, DES MANAGERS AINSI QUE DES DÉPARTEMENTS
     #[Route('/{id}', name: 'app_department_show', methods: ['GET'])]
-    public function show(Department $department, EmployeeRepository $emRepo, DeptManagerRepository $dmRepo): Response
+    public function show(Department $department, EmployeeRepository $emRepo, DeptManagerRepository $dmRepo, TitleRepository $titleRepo): Response
     {
         $department->actualEmployees = $emRepo->findActualEmployeesByDepartment($department);
-
         $managers = $dmRepo->findManagersByDepartment($department);
+        $titles = $titleRepo->findTitlesByDepartment($department);
 
         return $this->render('department/show.html.twig', [
             'department' => $department,
             'managers' => $managers,
+            'titles' => $titles,
         ]);
     }
 

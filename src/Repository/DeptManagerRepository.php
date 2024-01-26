@@ -35,35 +35,8 @@ class DeptManagerRepository extends ServiceEntityRepository
             ->setParameter('id', $department->getId())
             ->getQuery();
 
-        $result = $queryBuilder->getResult();
-
-        // dd($result);
+        $result = $queryBuilder->getResult();   // dd($result);
 
         return $result;
     }
-
-//    /**
-//     * @return DeptManager[] Returns an array of DeptManager objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?DeptManager
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

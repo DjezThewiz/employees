@@ -44,12 +44,19 @@ class Department
     #[ORM\OneToMany(mappedBy: 'department', targetEntity: DeptManager::class, orphanRemoval: true, cascade: ["persist"])]
     private Collection $deptManagers;
 
+    #[ORM\JoinTable(name: 'dept_title')]
+    #[ORM\JoinColumn(name: 'dept_no', referencedColumnName: 'dept_no', nullable: false)]
+    #[ORM\InverseJoinColumn(name: 'title_no', referencedColumnName: 'title_no', nullable: false)]
+    #[ORM\ManyToMany(targetEntity: Title::class, inversedBy: 'departments')]
+    private Collection $titles;
+
     public function __construct()
     {
         $this->deptEmps = new ArrayCollection();
         $this->employees = new ArrayCollection();
         $this->managers = new ArrayCollection();
         $this->deptManagers = new ArrayCollection();
+        $this->titles = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -226,6 +233,30 @@ class Department
                 $deptManager->setDepartment(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Title>
+     */
+    public function getTitles(): Collection
+    {
+        return $this->titles;
+    }
+
+    public function addTitle(Title $title): static
+    {
+        if (!$this->titles->contains($title)) {
+            $this->titles->add($title);
+        }
+
+        return $this;
+    }
+
+    public function removeTitle(Title $title): static
+    {
+        $this->titles->removeElement($title);
 
         return $this;
     }

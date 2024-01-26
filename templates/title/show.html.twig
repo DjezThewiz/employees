@@ -31,7 +31,7 @@
     <h3>{{ title }}</h3>
     {% for title_employee in title.employees %}
         <div>{{ title_employee }}</div>
-    {% else %}
-        <p>Aucun "{{ title }}" trouvé.</p>
+    {% else %} 
+        <p>Aucun titre "{{ title }}" des employés trouvé.</p>
     {% endfor %}
 {% endblock %}

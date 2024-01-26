@@ -40,33 +40,4 @@ class MissionRepository extends ServiceEntityRepository
            ->getResult()    // Si on attend un ou plusieurs résultats
         ;  
    }
-
-   // Ajout de la méthode countOngoingMissionsForEmployee
-//    public function findCountOngoingMissionsByEmployee($employee): int
-//    {
-//        $queryBuilder = $this->createQueryBuilder('miss')
-//            ->select('COUNT(m.status)')
-//            ->from(Mission::class, 'm')
-//            ->innerJoin('m.employees', 'e') // "employees" est le nom de la relation dans Mission.
-//            ->where('m.status = :status')
-//            ->andWhere('e.id = :id')
-//            ->setParameters([
-//                 'status' => 'ongoing',
-//                 'employee' => $employee->getId(),
-//            ]);
-
-//            $result = $queryBuilder->getQuery()->getSingleScalarResult();     dd($result);
-
-//         return $result;
-//    }
-
-//    public function findOneBySomeField($value): ?Mission
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }
